@@ -1,5 +1,5 @@
 
-[![License](http://poser.pugx.org/prologue/support/license)](https://packagist.org/packages/prologue/support) 
+![GitHub](https://img.shields.io/github/license/heiheshang/pbitrix24)![GitHub](https://img.shields.io/github/last-commit/heiheshang/pbitrix24)![GitHub](https://img.shields.io/github/v/tag/heiheshang/pbitrix24)
 # About
 
 `bitrix24` is a collection of tools to make writing prolog programs with bitrix24 api .
