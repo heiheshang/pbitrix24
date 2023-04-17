@@ -1,5 +1,5 @@
-:- module(test_bitrix24_auth, [
-              test_bitrix24_auth/0
+:- module(test_bitrix24, [
+              test_bitrix24/0
           ]).
 
 :- asserta(user:file_search_path(foreign, '.')).
@@ -7,6 +7,7 @@
 :- use_module(library(plunit)).
 :- use_module(bitrix24_auth).
 :- use_module(bitrix24_request).
+:- use_module(bitrix24_regapp).
 :- use_module(bitrix24_utils).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
@@ -22,11 +23,12 @@
 :- debug(log).
 :- set_prolog_flag(plunit_output, always).
 
-test_bitrix24_auth :-
+test_bitrix24 :-
     run_tests([
                assert_keys,
                refresh,
-               post
+               post,
+               install
               ]).
 
 :- begin_tests(assert_keys, [setup((absolute_file_name(.,Path),
@@ -59,7 +61,10 @@ test(refresh) :-
     bitrix24_auth:app_info('auth[access_token]', c02729640061cc84002c4d40000000010000073597cfbedf6b41e578215f8b6d7c9ff0).
 
 http_client:mock_http_get(_URL, Reply, [status_code(200)]) :- !,
-    Reply = json([access_token=c02729640061cc84002c4d40000000010000073597cfbedf6b41e578215f8b6d7c9ff0,expires=1680418752,expires_in=3600,scope=app,domain='oauth.bitrix.info',server_endpoint='https://oauth.bitrix.info/rest/',status='L',client_endpoint='https://test.bitrix24.ru/rest/',member_id=bf778c7d11d1fd065521619b61deb0c0,user_id=1,refresh_token=b0a650640061cc84002c4d40000000010000079ab601501b4bcc23261828cd97b2c3cd]).
+    Reply = json([access_token=c02729640061cc84002c4d40000000010000073597cfbedf6b41e578215f8b6d7c9ff0,expires=1680418752,expires_in=3600,
+                  scope=app,domain='oauth.bitrix.info',server_endpoint='https://oauth.bitrix.info/rest/',status='L',
+                  client_endpoint='https://test.bitrix24.ru/rest/',member_id=bf778c7d11d1fd065521619b61deb0c0,user_id=1,
+                  refresh_token=b0a650640061cc84002c4d40000000010000079ab601501b4bcc23261828cd97b2c3cd]).
 
 :- end_tests(refresh).
 
@@ -104,6 +109,39 @@ post(Request) :-
     reply_json(Reply).
 
 :- end_tests(post).
+
+:- begin_tests(install, [setup(
+                               wrap_predicate(http_client:http_get(Url, Reply, Options), install,
+                                             _Wrapped, mock_http_get_install(Url, Reply, Options))),
+                        cleanup(
+                                 unwrap_predicate(http_client:http_get(Url, Reply, Options), install)
+                                 )]).
+
+
+
+test(install) :-
+    assert(bitrix24_auth:config(event, onCrmAdd, 'http://localhost/rest')),
+    bitrix24_regapp:install(
+                     [event='ONAPPINSTALL','data[VERSION]'='1','data[ACTIVE]'='Y','data[INSTALLED]'='Y','data[LANGUAGE_ID]'=ru,
+                      ts='1681295421','auth[access_token]'='4d9636640061cc84002c4d40000000010000078db61a43f077dd35398b6201f7795438',
+                      'auth[expires]'='1681299021','auth[expires_in]'='3600','auth[scope]'='crm,task,tasks_extended,telephony',
+                      'auth[domain]'='localhost','auth[server_endpoint]'='https://oauth.bitrix.info/rest/','auth[status]'='L',
+                      'auth[client_endpoint]'='https://localhost/rest/','auth[member_id]'=bf778c7d11d1fd061521319b61deb0c0,
+                      'auth[user_id]'='1','auth[refresh_token]'='3d155e640061cc84002c4d4000000001000007c025cd8cbffb66a5881d6117b91fff3a',
+                      'auth[application_token]'='2b47d67465bff3392140fca1b0317ec9']),
+    bitrix24_auth:app_info('auth[refresh_token]', RefreshToken),
+    bitrix24_auth:app_info('auth[application_token]', AppToken),
+    assertion(RefreshToken == '3d155e640061cc84002c4d4000000001000007c025cd8cbffb66a5881d6117b91fff3a'),
+    assertion(AppToken == '2b47d67465bff3392140fca1b0317ec9').
+
+rest(Request) :-
+    debug(log, 'rest ~q', [Request]),
+    reply_json(json([])).
+
+http_client:mock_http_get_install(Url, Reply, [status_code(200)]) :- !,
+    Reply = json([result = @(true)]).
+
+:- end_tests(install).
 
 html_content(Type, Content, Needle) :-
     http_parse_header_value(content_type, Type, media(text/html, _Attributes)),

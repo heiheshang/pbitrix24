@@ -1,5 +1,5 @@
 :- module(bitrix24_request, [
-          post/4]).
+          post/4, get/3]).
 
 :- use_module(library(http/http_client)).
 :- use_module(bitrix24_utils, [decode_response/2, remove_json/2]).
@@ -17,3 +17,7 @@ post(URL, Body, Options, Response) :-
         ;    decode_response(Reply, Response),
              debug(http(error), 'error ~q : ~q', [E, Response])
      ).
+
+get(Url, Response, Options) :-
+    http_get(Url, Reply, Options),
+    decode_response(Reply, Response).
