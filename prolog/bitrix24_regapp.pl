@@ -4,6 +4,7 @@
 
 :-use_module(bitrix24_auth).
 :-use_module(bitrix24_request).
+:-use_module(bitrix24_config).
 
 install(Data) :-
     assert_keys(Data),
@@ -11,14 +12,11 @@ install(Data) :-
     'event.bind'.
 
 'event.unbind' :-
-    bitrix24_auth:app_info('auth[access_token]', AccessToken),
-    bitrix24_auth:app_info('auth[client_endpoint]', ClientEndpoint),
+    bitrix24_config:app_info('auth[access_token]', AccessToken),
+    bitrix24_config:app_info('auth[client_endpoint]', ClientEndpoint),
     format(atom(Url), '~w~w~w', [ClientEndpoint,'event.get?auth=',
                         AccessToken]),
-    catch(
-        get(Url, Reply, [status_code(StatusCode)]),
-        E,
-        throw(error(http_open_error(E),_))),
+    get(Url, Reply, [status_code(StatusCode)]),
     ( StatusCode == 200
     ->
         forall(member(json(Xs), Reply), (
@@ -38,15 +36,11 @@ install(Data) :-
       ).
 
 'event.bind' :-
-    bitrix24_auth:app_info('auth[access_token]', AccessToken),
-    bitrix24_auth:app_info('auth[client_endpoint]', ClientEndpoint),
+    bitrix24_config:app_info('auth[access_token]', AccessToken),
+    bitrix24_config:app_info('auth[client_endpoint]', ClientEndpoint),
     forall(config(event, E, H), (
-               %%atomic_list_concat([ClientEndpoint, 'event.bind.json?auth=', AccessToken, '&event=', E, '&handler=', H], URL),
                format(atom(Url), '~w~w~w~w~w~w~w', [ClientEndpoint, 'event.bind.json?auth=', AccessToken, '&event=', E, '&handler=', H]),
-               catch(
                    get(Url, Reply, [status_code(StatusCode)]),
-                   E,
-                   throw(error(http_open_error(E),_))),
                (\+ StatusCode == 200
                 ->
                      debug(log, 'reply ~q : ~q', [Reply, StatusCode])

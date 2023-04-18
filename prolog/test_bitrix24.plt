@@ -9,6 +9,7 @@
 :- use_module(bitrix24_request).
 :- use_module(bitrix24_regapp).
 :- use_module(bitrix24_utils).
+:- use_module(bitrix24_config).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_open)).
@@ -32,38 +33,38 @@ test_bitrix24 :-
               ]).
 
 :- begin_tests(assert_keys, [setup((absolute_file_name(.,Path),
-                                    bitrix24_auth:open_db(Path))),
-                             cleanup(retractall(bitrix24_auth:config(_,_,_)))]).
+                                    bitrix24_config:open_db(Path))),
+                             cleanup(retractall(bitrix24_config:config(_,_,_)))]).
 
 test(assert_keys) :-
        absolute_file_name(.,Path),
-       bitrix24_auth:open_db(Path),
+       bitrix24_config:open_db(Path),
        Data = ['data[VERSION]'='1','data[ACTIVE]'='Y','data[INSTALLED]'='Y','data[LANGUAGE_ID]'=ru,ts='1677593645','auth[access_token]'='3d1afe630061aca0002c4d4034500001000007aea83200862f920335a82df6035c81f6','auth[expires]'='1677597245','auth[expires_in]'='3600','auth[scope]'=crm,'auth[domain]'='test.bitrix24.ru','auth[server_endpoint]'='https://oauth.bitrix.info/rest/','auth[status]'='L','auth[client_endpoint]'='https://test.bitrix24.ru/rest/','auth[member_id]'=bf778c7d11d1fd067221619b61deb0c0,'auth[user_id]'='1','auth[refresh_token]'='2d9925640061aca0002c4d4000000001000007a98d6991b6116d0be1c4982a6a535a38','auth[application_token]'='470fca5b93a683685254564bf32eafbcaf'],
        bitrix24_auth:assert_keys(Data),
-       bitrix24_auth:app_info('auth[access_token]', '3d1afe630061aca0002c4d4034500001000007aea83200862f920335a82df6035c81f6').
+       bitrix24_config:app_info('auth[access_token]', '3d1afe630061aca0002c4d4034500001000007aea83200862f920335a82df6035c81f6').
 
 :- end_tests(assert_keys).
 
 :- begin_tests(refresh, [setup((absolute_file_name(.,Path),
-                                bitrix24_auth:open_db(Path),
-                                assert(bitrix24_auth:config(app, 'application_id', '1234')),
-                                assert(bitrix24_auth:config(app, 'client_secret', '123')),
+                                bitrix24_config:open_db(Path),
+                                assert(bitrix24_config:config(app, 'application_id', '1234')),
+                                assert(bitrix24_config:config(app, 'client_secret', '123')),
                                 wrap_predicate(http_client:http_get(Url, Reply, Options), refresh,
                                              _Wrapped, mock_http_get(Url, Reply, Options)))),
-                         cleanup((retractall(bitrix24_auth:config(_,_,_)),
+                         cleanup((retractall(bitrix24_config:config(_,_,_)),
                                  unwrap_predicate(http_client:http_get(Url, Reply, Options), refresh)))]).
 
 test(refresh) :-
     Data = [access_token='69b4fe630061aca0002c4d4000003681000007fd7ac2b201ddab0a6243287a5c561a50',expires=1677636713,expires_in=3600,scope=app,domain='oauth.bitrix.info',server_endpoint='https://oauth.bitrix.info/rest/',status='L',client_endpoint='https://test.bitrix24.ru/rest/',member_id=bf778c7d11d1fd065547919b61deb0c0,user_id=1,refresh_token='593326640061aca0002c4d40048600015670007e15f25b78deb2ce06bd959e16225c15d'],
     bitrix24_auth:assert_keys(Data),
-    bitrix24_auth:assert_app_info('auth[access_token]', '69b4fe630061aca0002c4d4000003681000007fd7ac2b201ddab0a6243287a5c561a50'),
+    bitrix24_config:assert_app_info('auth[access_token]', '69b4fe630061aca0002c4d4000003681000007fd7ac2b201ddab0a6243287a5c561a50'),
     bitrix24_auth:refresh_token,
-    bitrix24_auth:app_info('auth[access_token]', c02729640061cc84002c4d40000000010000073597cfbedf6b41e578215f8b6d7c9ff0).
+    bitrix24_config:app_info('auth[access_token]', c02729640061cc84002c4d40000000010000073597cfbedf6b41e578215f8b6d7c9ff0).
 
 http_client:mock_http_get(_URL, Reply, [status_code(200)]) :- !,
     Reply = json([access_token=c02729640061cc84002c4d40000000010000073597cfbedf6b41e578215f8b6d7c9ff0,expires=1680418752,expires_in=3600,
                   scope=app,domain='oauth.bitrix.info',server_endpoint='https://oauth.bitrix.info/rest/',status='L',
-                  client_endpoint='https://test.bitrix24.ru/rest/',member_id=bf778c7d11d1fd065521619b61deb0c0,user_id=1,
+                  client_endpoint='http://localhost/rest/',member_id=bf778c7d11d1fd065521619b61deb0c0,user_id=1,
                   refresh_token=b0a650640061cc84002c4d40000000010000079ab601501b4bcc23261828cd97b2c3cd]).
 
 :- end_tests(refresh).
@@ -77,8 +78,8 @@ test(post) :-
 request(Path, Body, Reply) :-
     setup_call_cleanup(
      http_server(http_dispatch, [port(localhost:Port)]),
-     ( format(atom(URL), 'http://localhost:~w~w', [Port, Path]),
-        post(URL, Body, [], Reply)
+     ( format(atom(Url), 'http://localhost:~w~w', [Port, Path]),
+        post(Url, Body, [], Reply)
      ),
      http_stop_server(Port, [])).
 
@@ -110,17 +111,18 @@ post(Request) :-
 
 :- end_tests(post).
 
-:- begin_tests(install, [setup(
+:- begin_tests(install, [setup((
                                wrap_predicate(http_client:http_get(Url, Reply, Options), install,
-                                             _Wrapped, mock_http_get_install(Url, Reply, Options))),
-                        cleanup(
-                                 unwrap_predicate(http_client:http_get(Url, Reply, Options), install)
-                                 )]).
+                                             _Wrapped, mock_http_get_install(Url, Reply, Options)),
+                                   assert(bitrix24_config:config(event, onCrmAdd, 'http://localhost/rest')))),
+                        cleanup((
+                                 unwrap_predicate(http_client:http_get(Url, Reply, Options), install),
+                                 retract(bitrix24_config:config(event, _, _))
+                                 ))]).
 
 
 
 test(install) :-
-    assert(bitrix24_auth:config(event, onCrmAdd, 'http://localhost/rest')),
     bitrix24_regapp:install(
                      [event='ONAPPINSTALL','data[VERSION]'='1','data[ACTIVE]'='Y','data[INSTALLED]'='Y','data[LANGUAGE_ID]'=ru,
                       ts='1681295421','auth[access_token]'='4d9636640061cc84002c4d40000000010000078db61a43f077dd35398b6201f7795438',
@@ -129,16 +131,12 @@ test(install) :-
                       'auth[client_endpoint]'='https://localhost/rest/','auth[member_id]'=bf778c7d11d1fd061521319b61deb0c0,
                       'auth[user_id]'='1','auth[refresh_token]'='3d155e640061cc84002c4d4000000001000007c025cd8cbffb66a5881d6117b91fff3a',
                       'auth[application_token]'='2b47d67465bff3392140fca1b0317ec9']),
-    bitrix24_auth:app_info('auth[refresh_token]', RefreshToken),
-    bitrix24_auth:app_info('auth[application_token]', AppToken),
+    bitrix24_config:app_info('auth[refresh_token]', RefreshToken),
+    bitrix24_config:app_info('auth[application_token]', AppToken),
     assertion(RefreshToken == '3d155e640061cc84002c4d4000000001000007c025cd8cbffb66a5881d6117b91fff3a'),
     assertion(AppToken == '2b47d67465bff3392140fca1b0317ec9').
 
-rest(Request) :-
-    debug(log, 'rest ~q', [Request]),
-    reply_json(json([])).
-
-http_client:mock_http_get_install(Url, Reply, [status_code(200)]) :- !,
+http_client:mock_http_get_install(_Url, Reply, [status_code(200)]) :- !,
     Reply = json([result = @(true)]).
 
 :- end_tests(install).
