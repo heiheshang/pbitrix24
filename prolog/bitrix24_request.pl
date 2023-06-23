@@ -30,6 +30,6 @@ status_code(200, _Error, Reply, Response) :- !,
     decode_response(Reply, Result),
     remove_json(Result, Response).
 
-status_code(_StatusCode, Error, Reply, Response) :-
+status_code(StatusCode, Error, Reply, Response) :-
     decode_response(Reply, Response),
-    debug(http(error), 'error ~q : ~q', [Error, Response]).
+    debug(http(error), 'error ~q : ~q : ~q', [StatusCode, Error, Response]).
