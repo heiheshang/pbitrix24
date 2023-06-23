@@ -2,7 +2,8 @@
               load_config/1,
               config/3,
               app_info/2,
-              open_db/1
+              open_db/1,
+              catalog_app/1
           ]).
 
 :- use_module(library(persistency)).
