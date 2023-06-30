@@ -1,6 +1,8 @@
 :- module(bitrix24_request, [
           post/4, get/3]).
 
+:- autoload(library(option),
+            [option/2]).
 :- use_module(library(http/http_client)).
 :- use_module(bitrix24_utils, [decode_response/2, remove_json/2]).
 
