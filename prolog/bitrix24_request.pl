@@ -7,7 +7,7 @@
 post(Url, Body, Options, Response) :-
         (option(status_code(StatusCode), Options)
          -> http_post(Url, Body, Reply, Options)
-        ; http_post(Url, Body, Reply, [status_code(StatusCode) | Options]),
+        ; http_post(Url, Body, Reply, [status_code(StatusCode) | Options])
         ),
         status_code(StatusCode, Reply, Response).
 
@@ -16,7 +16,7 @@ get(Url, Response, Options) :-
           -> http_get(Url, Reply, Options)
          ; http_get(Url, Reply, [status_code(StatusCode) | Options])
         ),
-        status_code(StatusCode, Reply, Response)).
+        status_code(StatusCode, Reply, Response).
 
 
 status_code(200, Reply, Response) :- !,
@@ -25,4 +25,4 @@ status_code(200, Reply, Response) :- !,
 
 status_code(StatusCode, Reply, Response) :-
     decode_response(Reply, Response),
-    debug(http(error), 'error status code ~q : error', [StatusCode, Reply]).
+    debug(http(error), 'error status code ~q : reply ~q', [StatusCode, Reply]).
