@@ -6,7 +6,7 @@
 :- use_module(library(http/http_client)).
 :- use_module(bitrix24_utils, [decode_response/2, remove_json/2]).
 
-post(Url, Body, Options, Response) :-
+post(Url, Body, Response, Options) :-
         (option(status_code(StatusCode), Options)
          -> http_post(Url, Body, Reply, Options)
         ; http_post(Url, Body, Reply, [status_code(StatusCode) | Options])
