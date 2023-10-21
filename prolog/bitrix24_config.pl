@@ -62,4 +62,4 @@ open_db(_) :-
 open_db(Dir) :-
     setting(database, Spec),
     atom_concat(Dir, Spec, PathFile),
-    db_attach(PathFile, [sync(close)]).
+    db_attach(PathFile, [sync(close)]), !.

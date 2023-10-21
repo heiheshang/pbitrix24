@@ -80,7 +80,7 @@ request(Path, Body, Reply) :-
     setup_call_cleanup(
      http_server(http_dispatch, [port(localhost:Port)]),
      ( format(atom(Url), 'http://localhost:~w~w', [Port, Path]),
-        post(Url, Body, [], Reply)
+        post(Url, Body, Reply, [])
      ),
      http_stop_server(Port, [])).
 

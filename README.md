@@ -15,7 +15,7 @@ pack_install(bitrix24).
 Test
 
 ``` bash
-swipl -g run_tests -t halt prolog/test_bitrix24.pl
+swipl -g run_tests -t halt prolog/test_bitrix24.plt
 ```
 yaml structure
 

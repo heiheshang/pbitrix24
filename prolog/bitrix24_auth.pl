@@ -5,12 +5,6 @@
          ]).
 
 :- use_module(library(http/http_client)).
-%%:- use_module(library(http/http_open)).
-%%:- use_module(library(http/http_json)).
-%%:- use_module(library(http/json_convert)).
-%%:- use_module(library(http/http_header)).
-%%:- use_module(library(http/json)).
-%%:- use_module(library(http/http_parameters)).
 :- use_module(bitrix24_utils).
 :- use_module(bitrix24_config).
 
