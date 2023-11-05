@@ -34,7 +34,7 @@ check_token :-
     ( Diff < 100
         -> refresh_token
         ;
-           true).
+           !, true).
 
 refresh_token :-
     bitrix24_config:app_info('auth[refresh_token]', RefreshToken),
@@ -52,7 +52,7 @@ refresh_token :-
     (200 == StatusCode
         ->
              bitrix24_utils:decode_response(Reply, Response),
-             assert_keys(Response),
+             assert_keys(Response),!,
              true
         ;    decode_response(Reply, Response),
              debug(http(error), 'error ~q : ~q', [E, Response]),

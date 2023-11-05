@@ -15,7 +15,7 @@ post(Url, Body, Response, Options) :-
          E,
          throw(error(http_open_error(E),_))
         ),
-        status_code(StatusCode, E, Reply, Response).
+        status_code(StatusCode, E, Reply, Response, Url).
 
 get(Url, Response, Options) :-
         catch(
@@ -26,13 +26,13 @@ get(Url, Response, Options) :-
         E,
          throw(error(http_open_error(E),_))
         ),
-        status_code(StatusCode, E, Reply, Response).
+        status_code(StatusCode, E, Reply, Response, Url).
 
 
-status_code(200, _E, Reply, Response) :- !,
+status_code(200, _E, Reply, Response, _Url) :- !,
     decode_response(Reply, Result),
     remove_json(Result, Response).
 
-status_code(StatusCode, Error, Reply, Response) :-
+status_code(StatusCode, Error, Reply, Response, Url) :-
     decode_response(Reply, Response),
-    debug(http(error), 'error status code ~q : error ~q : response ~q : reply ~q', [StatusCode, Error, Response, Reply]).
+    debug(http(error), 'error status code ~q : error ~q : response ~q : reply ~q url: ~q', [StatusCode, Error, Response, Reply, Url]).
