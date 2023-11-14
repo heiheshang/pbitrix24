@@ -7,7 +7,7 @@
 :-use_module(bitrix24_config).
 
 install(Data) :-
-    assert_keys(Data),
+    bitrix24_auth:assert_keys(Data),
     'event.unbind',
     'event.bind'.
 

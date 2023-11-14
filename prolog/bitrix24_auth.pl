@@ -13,6 +13,7 @@ assert_keys(Data) :-
            (
                corresponding(Key, CKey),
                bitrix24_config:retractall_app_info(CKey, _),
+               bitrix24_config:db_sync(gc),
                bitrix24_config:assert_app_info(CKey, Value)
            )
         ).
