@@ -6,6 +6,8 @@
 :- use_module(library(http/http_client)).
 :- use_module(bitrix24_utils, [decode_response/2, remove_json/2]).
 
+:- debug(request(post)).
+:- debug(request(get)).
 post(Url, Body, Response, Options) :-
         catch(
          (option(status_code(StatusCode), Options)
@@ -13,7 +15,7 @@ post(Url, Body, Response, Options) :-
           ; http_post(Url, Body, Reply, [status_code(StatusCode) | Options])
          ),
          E,
-         throw(error(http_open_error(E),_))
+         debug(request(post), '~q~n', [E])
         ),
         status_code(StatusCode, E, Reply, Response, Url).
 
@@ -23,8 +25,8 @@ get(Url, Response, Options) :-
            -> http_get(Url, Reply, Options)
           ; http_get(Url, Reply, [status_code(StatusCode) | Options])
          ),
-        E,
-         throw(error(http_open_error(E),_))
+         E,
+         debug(request(get), '~q~n', [E])
         ),
         status_code(StatusCode, E, Reply, Response, Url).
 

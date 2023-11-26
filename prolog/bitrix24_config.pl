@@ -56,10 +56,8 @@ catalog_app(Dir) :-
 catalog_app(Dir) :-
     make_directory(Dir).
 
-open_db(Dir) :-
-    setting(database, Spec),
-    atom_concat(Dir, Spec, PathFile),
-    db_attached(PathFile),
+open_db(_) :-
+    db_attached(_),
     !.
 open_db(Dir) :-
     setting(database, Spec),
