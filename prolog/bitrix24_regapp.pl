@@ -62,8 +62,7 @@ install(Data) :-
         forall(member(Xs, Reply), (
                memberchk(placement=Placement, Xs),
                memberchk(handler=Handler, Xs),
-               format(atom(UrlU), '~w~w~w~w~w~w~w', [ClientEndpoint, 'placement.unbind?auth=',
-                                                     AccessToken, '&auth_type=0&placement=', Placement, '&handler=', Handler]),
+               format(atom(UrlU), '~wplacement.unbind/?auth=~w&auth_type=0&placement=~w&handler=~w', [ClientEndpoint, AccessToken, Placement, Handler]),
                get(UrlU, ReplyU, []),
                memberchk(count=1, ReplyU)
                )
@@ -75,8 +74,8 @@ install(Data) :-
 'placement.bind' :-
     bitrix24_config:app_info('auth[access_token]', AccessToken),
     bitrix24_config:app_info('auth[client_endpoint]', ClientEndpoint),
-    forall(config(placement, E, H), (
-               format(atom(Url), '~w~w~w~w~w~w~w', [ClientEndpoint, 'placement.bind?auth=', AccessToken, '&placement=', E, '&handler=', H]),
+    forall(config(placement, E, [H, T]), (
+               format(atom(Url), '~wplacement.bind/?auth=~w&placement=~w&handler=~w&title=', [ClientEndpoint, AccessToken, E, H, T]),
                    get(Url, Reply, [status_code(StatusCode)]),
                (\+ StatusCode == 200
                 ->
