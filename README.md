@@ -1,5 +1,5 @@
 
-![GitHub](https://img.shields.io/github/license/heiheshang/pbitrix24)![GitHub](https://img.shields.io/github/last-commit/heiheshang/pbitrix24)![GitHub](https://img.shields.io/github/v/tag/heiheshang/pbitrix24)
+![GitHub](https://img.shields.io/github/license/heiheshang/pbitrix24) ![GitHub](https://img.shields.io/github/last-commit/heiheshang/pbitrix24) ![GitHub](https://img.shields.io/github/v/tag/heiheshang/pbitrix24) ![SWI-Prolog](https://img.shields.io/badge/SWI--Prolog-8.x%2B-blue) ![Bitrix24](https://img.shields.io/badge/Bitrix24-REST%20API-2FC6F6)
 # About
 
 `bitrix24` is a collection of tools to make writing prolog programs with bitrix24 api .
