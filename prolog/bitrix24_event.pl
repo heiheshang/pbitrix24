@@ -1,24 +1,38 @@
 :- module(bitrix24_event, [
-             get/1,
-             bind/2,
+             get/2,
+             get/3,
              bind/3,
-             unbind/2,
-             unbind/3
+             bind/4,
+             bind/5,
+             unbind/3,
+             unbind/4,
+             unbind/5
          ]).
 
 :- use_module(bitrix24_rest).
 
-get(Result) :-
-    bitrix24_rest:api_call('event.get', [], Result).
+get(Provider, Result) :-
+    bitrix24_rest:api_call(Provider, 'event.get', [], Result).
 
-bind(Event, Handler) :-
-    bind(Event, Handler, []).
+get(Provider, ContextRef, Result) :-
+    bitrix24_rest:api_call(Provider, ContextRef, 'event.get', [], Result).
 
-bind(Event, Handler, Result) :-
-    bitrix24_rest:api_call('event.bind', [event=Event, handler=Handler], Result).
+bind(Provider, Event, Handler) :-
+    bind(Provider, Event, Handler, []).
 
-unbind(Event, Handler) :-
-    unbind(Event, Handler, []).
+bind(Provider, Event, Handler, Result) :-
+    bitrix24_rest:api_call(Provider, 'event.bind', [event=Event, handler=Handler], Result).
 
-unbind(Event, Handler, Result) :-
-    bitrix24_rest:api_call('event.unbind', [event=Event, handler=Handler], Result).
+bind(Provider, ContextRef, Event, Handler, Result) :-
+    bitrix24_rest:api_call(Provider, ContextRef, 'event.bind',
+                           [event=Event, handler=Handler], Result).
+
+unbind(Provider, Event, Handler) :-
+    unbind(Provider, Event, Handler, []).
+
+unbind(Provider, Event, Handler, Result) :-
+    bitrix24_rest:api_call(Provider, 'event.unbind', [event=Event, handler=Handler], Result).
+
+unbind(Provider, ContextRef, Event, Handler, Result) :-
+    bitrix24_rest:api_call(Provider, ContextRef, 'event.unbind',
+                           [event=Event, handler=Handler], Result).
